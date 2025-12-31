@@ -170,6 +170,8 @@ bash check_setup.sh
 
 If you want a single entrypoint that **clones/updates** this repo and runs `setup.sh`, use `bootstrap.sh`.
 
+- **Note:** `bootstrap.sh` still requires the same prerequisites as `setup.sh` (`git`, `make`, `curl`, `bash`). If something is missing, it will stop and tell you what to install.
+
 - **Recommended (curl | bash)**: set your repo URL and run:
 
 ```bash

@@ -41,22 +41,62 @@ require_cmd() {
   fi
 }
 
-# If this script lives next to setup.sh, we're already in a repo clone.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/setup.sh" ]; then
-  log "✅ Detected local repo clone at: $SCRIPT_DIR"
+install_prereq_hint() {
+  err ""
+  err "Install missing prerequisites, then re-run bootstrap."
+  if command -v apt >/dev/null 2>&1; then
+    err ""
+    err "Ubuntu/Debian:"
+    err "  sudo apt update"
+    err "  sudo apt install -y git make curl build-essential"
+  elif command -v dnf >/dev/null 2>&1; then
+    err ""
+    err "RHEL/Fedora:"
+    err "  sudo dnf install -y git make curl gcc gcc-c++"
+  elif command -v yum >/dev/null 2>&1; then
+    err ""
+    err "RHEL/CentOS:"
+    err "  sudo yum install -y git make curl gcc gcc-c++"
+  fi
+}
+
+run_setup_in_dir() {
+  local dir="$1"
+  log "✅ Detected local repo clone at: $dir"
+  require_cmd make
   log "▶ Running setup.sh..."
-  (cd "$SCRIPT_DIR" && bash setup.sh)
+  (cd "$dir" && bash setup.sh)
   log "🧹 Clearing oh-my-posh cache..."
   rm -rf "$HOME/.cache/oh-my-posh" 2>/dev/null || true
   log "✅ Done. Restart your terminal (recommended), or run: source ~/.bashrc"
+}
+
+# If we're already in a repo clone (e.g., user ran `bash bootstrap.sh` inside repo),
+# run setup.sh from the repo root.
+if [ -f "./setup.sh" ] && [ -f "./bootstrap.sh" ]; then
+  run_setup_in_dir "$(pwd)"
   exit 0
+fi
+
+# If we are inside a git worktree somewhere under the repo, locate root and run.
+if command -v git >/dev/null 2>&1; then
+  if repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    if [ -f "$repo_root/setup.sh" ] && [ -f "$repo_root/bootstrap.sh" ]; then
+      run_setup_in_dir "$repo_root"
+      exit 0
+    fi
+  fi
 fi
 
 # Otherwise we need to clone/update.
 require_cmd git
 require_cmd curl
 require_cmd bash
+if ! command -v make >/dev/null 2>&1; then
+  err "❌ Error: make is required but not installed."
+  install_prereq_hint
+  exit 1
+fi
 
 detect_default_branch() {
   # Try to read remote default branch (HEAD) without cloning.
