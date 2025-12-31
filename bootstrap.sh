@@ -17,7 +17,7 @@ Usage:
 
   # Optional overrides:
   SUPER_BASH_INSTALL_DIR="/some/path/Super-Bash-DevOps-Environment"
-  SUPER_BASH_BRANCH="main"
+  SUPER_BASH_BRANCH="<branch>"
 
   # If running from inside the repo:
   bash bootstrap.sh
@@ -27,7 +27,7 @@ Env vars:
   SUPER_BASH_INSTALL_DIR  Optional. Defaults to:
                           - /mnt/d/repos/Super-Bash-DevOps-Environment if /mnt/d/repos exists (WSL)
                           - $HOME/repos/Super-Bash-DevOps-Environment otherwise
-  SUPER_BASH_BRANCH       Optional. Defaults to "main"
+  SUPER_BASH_BRANCH       Optional. Defaults to the remote default branch (auto-detected), else "master", else "main"
 EOF
 }
 
@@ -58,7 +58,19 @@ require_cmd git
 require_cmd curl
 require_cmd bash
 
-SUPER_BASH_BRANCH="${SUPER_BASH_BRANCH:-main}"
+detect_default_branch() {
+  # Try to read remote default branch (HEAD) without cloning.
+  # Output format:
+  #   ref: refs/heads/<branch>    HEAD
+  local url="$1"
+  local ref
+  ref="$(git ls-remote --symref "$url" HEAD 2>/dev/null | awk '/^ref:/ {print $2; exit}')"
+  if [[ -n "${ref:-}" && "$ref" == refs/heads/* ]]; then
+    echo "${ref#refs/heads/}"
+    return 0
+  fi
+  return 1
+}
 
 if [ -z "${SUPER_BASH_INSTALL_DIR:-}" ]; then
   if [ -d "/mnt/d/repos" ]; then
@@ -73,6 +85,14 @@ if [ -z "${SUPER_BASH_REPO_URL:-}" ]; then
   err ""
   print_usage
   exit 2
+fi
+
+if [ -z "${SUPER_BASH_BRANCH:-}" ]; then
+  SUPER_BASH_BRANCH="$(detect_default_branch "$SUPER_BASH_REPO_URL" || true)"
+fi
+SUPER_BASH_BRANCH="${SUPER_BASH_BRANCH:-master}"
+if [ -z "${SUPER_BASH_BRANCH:-}" ]; then
+  SUPER_BASH_BRANCH="main"
 fi
 
 log "📦 Installing/updating Super-Bash DevOps Environment"

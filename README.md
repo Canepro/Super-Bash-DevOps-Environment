@@ -69,7 +69,7 @@ sudo apt install -y git make curl build-essential
 **If this is a new machine:**
 
 ```bash
-git clone <your-repo-url> Super-Bash-DevOps-Environment
+git clone https://github.com/Canepro/Super-Bash-DevOps-Environment.git Super-Bash-DevOps-Environment
 cd Super-Bash-DevOps-Environment
 ```
 
@@ -79,7 +79,7 @@ cd Super-Bash-DevOps-Environment
 cd Super-Bash-DevOps-Environment
 ```
 
-*(Replace `<your-repo-url>` with your actual GitHub repository URL)*
+*(This repo is available at `https://github.com/Canepro/Super-Bash-DevOps-Environment`.)*
 
 ### Step 3: Run the Setup Script
 
@@ -173,7 +173,7 @@ If you want a single entrypoint that **clones/updates** this repo and runs `setu
 - **Recommended (curl | bash)**: set your repo URL and run:
 
 ```bash
-SUPER_BASH_REPO_URL="https://github.com/<ORG>/<REPO>.git" bash -c "$(curl -fsSL <RAW_URL_TO_bootstrap.sh>)"
+SUPER_BASH_REPO_URL="https://github.com/Canepro/Super-Bash-DevOps-Environment.git" bash -c "$(curl -fsSL https://raw.githubusercontent.com/Canepro/Super-Bash-DevOps-Environment/master/bootstrap.sh)"
 ```
 
 - **If you already cloned the repo**:
@@ -190,7 +190,7 @@ bash bootstrap.sh
 **Optional overrides:**
 
 ```bash
-SUPER_BASH_INSTALL_DIR="/some/path/Super-Bash-DevOps-Environment" SUPER_BASH_REPO_URL="https://github.com/<ORG>/<REPO>.git" bash -c "$(curl -fsSL <RAW_URL_TO_bootstrap.sh>)"
+SUPER_BASH_INSTALL_DIR="/some/path/Super-Bash-DevOps-Environment" SUPER_BASH_REPO_URL="https://github.com/Canepro/Super-Bash-DevOps-Environment.git" bash -c "$(curl -fsSL https://raw.githubusercontent.com/Canepro/Super-Bash-DevOps-Environment/master/bootstrap.sh)"
 ```
 
 ### 🚀 One-Step Install (Private Repo Friendly)
@@ -198,10 +198,10 @@ SUPER_BASH_INSTALL_DIR="/some/path/Super-Bash-DevOps-Environment" SUPER_BASH_REP
 If you want a single command to install from your **private** GitHub repo:
 
 ```bash
-git clone <your-repo-url> Super-Bash-DevOps-Environment && cd Super-Bash-DevOps-Environment && bash setup.sh
+git clone https://github.com/Canepro/Super-Bash-DevOps-Environment.git Super-Bash-DevOps-Environment && cd Super-Bash-DevOps-Environment && bash setup.sh
 ```
 
-*(Replace `<your-repo-url>` with your actual GitHub repository URL)*
+Note: If you fork this repo, replace the URL with your fork.
 
 ## 📦 What Gets Installed
 
