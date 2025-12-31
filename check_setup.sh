@@ -17,6 +17,80 @@ PASS_COUNT=0
 FAIL_COUNT=0
 WARN_COUNT=0
 
+print_install_hint() {
+    local tool="$1"
+
+    # detect a package manager (best-effort)
+    local pm=""
+    if command -v apt >/dev/null 2>&1; then
+        pm="apt"
+    elif command -v dnf >/dev/null 2>&1; then
+        pm="dnf"
+    elif command -v yum >/dev/null 2>&1; then
+        pm="yum"
+    elif command -v pacman >/dev/null 2>&1; then
+        pm="pacman"
+    fi
+
+    case "$tool" in
+        git|curl|make|unzip)
+            case "$pm" in
+                apt)
+                    case "$tool" in
+                        make)  echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo apt update && sudo apt install -y make build-essential" ;;
+                        unzip) echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo apt update && sudo apt install -y unzip" ;;
+                        *)     echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo apt update && sudo apt install -y $tool" ;;
+                    esac
+                    ;;
+                dnf)
+                    case "$tool" in
+                        make)  echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo dnf install -y make gcc gcc-c++" ;;
+                        unzip) echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo dnf install -y unzip" ;;
+                        *)     echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo dnf install -y $tool" ;;
+                    esac
+                    ;;
+                yum)
+                    case "$tool" in
+                        make)  echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo yum install -y make gcc gcc-c++" ;;
+                        unzip) echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo yum install -y unzip" ;;
+                        *)     echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo yum install -y $tool" ;;
+                    esac
+                    ;;
+                pacman)
+                    case "$tool" in
+                        make)  echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo pacman -S --needed make base-devel" ;;
+                        unzip) echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo pacman -S --needed unzip" ;;
+                        *)     echo -e "[ ${INFO}ℹ HINT${NC} ] Install: sudo pacman -S --needed $tool" ;;
+                    esac
+                    ;;
+                *)
+                    echo -e "[ ${INFO}ℹ HINT${NC} ] Install '$tool' using your system package manager."
+                    ;;
+            esac
+            ;;
+        fzf|zoxide|bun|oh-my-posh)
+            echo -e "[ ${INFO}ℹ HINT${NC} ] Run: bash setup.sh (installs $tool for this environment)"
+            ;;
+        kubectl)
+            # kubectl is intentionally not installed by setup.sh (optional)
+            case "$pm" in
+                apt)
+                    echo -e "[ ${INFO}ℹ HINT${NC} ] Install kubectl (options): sudo snap install kubectl --classic  OR  follow https://kubernetes.io/docs/tasks/tools/"
+                    ;;
+                *)
+                    echo -e "[ ${INFO}ℹ HINT${NC} ] Install kubectl: https://kubernetes.io/docs/tasks/tools/"
+                    ;;
+            esac
+            ;;
+        oci)
+            echo -e "[ ${INFO}ℹ HINT${NC} ] Install OCI CLI: https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm"
+            ;;
+        *)
+            # No hint
+            ;;
+    esac
+}
+
 check_cmd() {
     if command -v "$1" >/dev/null 2>&1; then
         echo -e "[ ${PASS}✓ OK${NC} ] $1 is installed"
@@ -24,6 +98,7 @@ check_cmd() {
         return 0
     else
         echo -e "[ ${FAIL}✗ FAIL${NC} ] $1 is NOT installed"
+        print_install_hint "$1"
         ((FAIL_COUNT++))
         return 1
     fi
@@ -88,7 +163,9 @@ echo -e "\n${INFO}━━━━━━━━━━━━━━━━━━━━�
 echo -e "${INFO}☸️  DevOps Tools${NC}"
 echo -e "${INFO}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-if check_cmd kubectl; then
+if command -v kubectl >/dev/null 2>&1; then
+    echo -e "[ ${PASS}✓ OK${NC} ] kubectl is installed"
+    ((PASS_COUNT++))
     # Check KUBECONFIG
     if [ -n "$KUBECONFIG" ] && [ -f "$KUBECONFIG" ]; then
         echo -e "[ ${PASS}✓ OK${NC} ] KUBECONFIG is set and valid: $KUBECONFIG"
@@ -100,9 +177,15 @@ if check_cmd kubectl; then
         echo -e "[ ${WARN}⚠ INFO${NC} ] KUBECONFIG not set and default not found"
         ((WARN_COUNT++))
     fi
+else
+    echo -e "[ ${WARN}⚠ INFO${NC} ] kubectl not installed (optional)"
+    print_install_hint "kubectl"
+    ((WARN_COUNT++))
 fi
 
-if check_cmd oci; then
+if command -v oci >/dev/null 2>&1; then
+    echo -e "[ ${PASS}✓ OK${NC} ] oci is installed"
+    ((PASS_COUNT++))
     # Check OCI CLI autocomplete (dynamically find for any Python version)
     oci_path=$(find "$HOME/lib/oracle-cli" -name "oci_autocomplete.sh" 2>/dev/null | head -1)
     if [ -n "$oci_path" ] && [ -f "$oci_path" ]; then
@@ -114,6 +197,7 @@ if check_cmd oci; then
     fi
 else
     echo -e "[ ${WARN}⚠ INFO${NC} ] OCI CLI not installed (optional)"
+    print_install_hint "oci"
     ((WARN_COUNT++))
 fi
 
