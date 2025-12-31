@@ -64,6 +64,17 @@ run_setup_in_dir() {
   local dir="$1"
   log "✅ Detected local repo clone at: $dir"
   require_cmd make
+
+  # Always pull latest changes if this is a git repo
+  if [ -d "$dir/.git" ]; then
+    log "🔄 Pulling latest changes..."
+    if (cd "$dir" && git fetch --all --prune 2>/dev/null && git pull --ff-only 2>/dev/null); then
+      log "   ✅ Updated to latest"
+    else
+      log "   ⚠ Could not auto-update (dirty tree or network issue). Continuing with current version..."
+    fi
+  fi
+
   log "▶ Running setup.sh..."
   (cd "$dir" && bash setup.sh)
   log "🧹 Clearing oh-my-posh cache..."
@@ -167,5 +178,5 @@ log ""
 log "✅ Bootstrap complete."
 log "Next:"
 log "  - Restart your terminal (recommended), or run: source ~/.bashrc"
-log "  - Run: bash check_setup.sh"
+log "  - Run: bash $SUPER_BASH_INSTALL_DIR/check_setup.sh"
 
