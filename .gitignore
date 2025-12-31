@@ -1,0 +1,32 @@
+# Backup files created by setup.sh
+*.backup.*
+bashrc.backup.*
+.bashrc.backup.*
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Temporary files
+*.tmp
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Local test files
+test_*
+*.local
+
+# Personal secrets (if accidentally added)
+secrets/
+*.secret
+.env.local
+
+# Installation artifacts
+ble.sh/
+.fzf/
