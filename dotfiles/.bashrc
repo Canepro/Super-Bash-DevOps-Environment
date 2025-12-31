@@ -140,6 +140,171 @@ if command -v terraform &>/dev/null; then
 fi
 
 # =========================================================
+# 5.1 SYSTEM MAINTENANCE
+# =========================================================
+# sysupdate: One-command OS update for Debian/RHEL/Arch
+# - Runs full upgrade and cleans up old packages
+alias sysupdate='
+  if [ -f /etc/debian_version ]; then
+    sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove --purge -y
+  elif [ -f /etc/redhat-release ]; then
+    sudo dnf upgrade -y && sudo dnf autoremove -y
+  elif [ -f /etc/arch-release ]; then
+    sudo pacman -Syu --noconfirm
+  else
+    echo "Unsupported distro"
+  fi
+'
+
+# sysinfo: Quick system overview (storage, memory, CPU, Docker)
+alias sysinfo='
+  echo "================ STORAGE ================"
+  df -h / | awk "NR==1 || NR==2"
+  echo ""
+  echo "================ MEMORY ================="
+  free -h
+  echo ""
+  echo "================ CPU CORES =============="
+  nproc
+  if command -v docker &>/dev/null; then
+    echo ""
+    echo "================ DOCKER USAGE ==========="
+    docker system df 2>/dev/null || echo "(Docker not running)"
+  fi
+'
+
+# ports: Show all listening ports with process info
+alias ports='sudo ss -tulnp 2>/dev/null || sudo netstat -tulnp'
+
+# myip: Show public IP address
+alias myip='curl -s ifconfig.me && echo'
+
+# localip: Show local IP addresses
+alias localip='hostname -I 2>/dev/null || ip -4 addr show | grep -oP "(?<=inet\s)\d+(\.\d+){3}" | grep -v "127.0.0.1"'
+
+# pingg: Quick connectivity check (Google DNS)
+alias pingg='ping -c 4 8.8.8.8'
+
+# =========================================================
+# 5.2 DOCKER SHORTCUTS
+# =========================================================
+# dps: Clean container list with names, status, and ports
+alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+
+# dimg: List all Docker images
+alias dimg='docker images'
+
+# dprune: Remove all unused Docker resources (images, containers, volumes)
+alias dprune='docker system prune -af --volumes'
+
+# dstop: Stop all running containers
+alias dstop='docker stop $(docker ps -q) 2>/dev/null || echo "No running containers"'
+
+# dexec: Fuzzy exec into a running container (like kxp but for Docker)
+dexec() {
+  if ! command -v docker &>/dev/null; then
+    echo "Error: docker is not installed" >&2
+    return 1
+  fi
+  local container
+  container=$(docker ps --format "{{.Names}}" 2>/dev/null | fzf --height 40% --reverse --prompt="Exec into Container > ")
+  if [ -n "$container" ]; then
+    docker exec -it "$container" bash 2>/dev/null || docker exec -it "$container" sh
+  fi
+}
+
+# dlogs: Fuzzy container logs (like klp but for Docker)
+dlogs() {
+  if ! command -v docker &>/dev/null; then
+    echo "Error: docker is not installed" >&2
+    return 1
+  fi
+  local container
+  container=$(docker ps -a --format "{{.Names}}" 2>/dev/null | fzf --height 40% --reverse --prompt="Select Container for Logs > ")
+  if [ -n "$container" ]; then
+    docker logs -f "$container"
+  fi
+}
+
+# =========================================================
+# 5.3 GIT SHORTCUTS
+# =========================================================
+# gs: Quick git status
+alias gs='git status'
+
+# gp: Git pull
+alias gp='git pull'
+
+# gpp: Git pull then push (sync with remote)
+alias gpp='git pull && git push'
+
+# glog: Recent commit history (one-line format)
+alias glog='git log --oneline -20'
+
+# gundo: Undo last commit but keep changes staged
+alias gundo='git reset --soft HEAD~1'
+
+# gd: Git diff (show unstaged changes)
+alias gd='git diff'
+
+# gds: Git diff staged (show staged changes)
+alias gds='git diff --staged'
+
+# =========================================================
+# 5.4 FILE & DIRECTORY UTILITIES
+# =========================================================
+# ll: Detailed directory listing with human-readable sizes
+alias ll='ls -alh --color=auto'
+
+# lt: Directory listing sorted by modification time (newest first)
+alias lt='ls -alht --color=auto'
+
+# mkcd: Create directory and cd into it
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# extract: Universal archive extractor
+# Supports: tar.gz, tar.bz2, tar.xz, zip, rar, 7z, gz, bz2
+extract() {
+  if [ -z "$1" ]; then
+    echo "Usage: extract <archive>"
+    return 1
+  fi
+  if [ ! -f "$1" ]; then
+    echo "Error: '$1' is not a valid file"
+    return 1
+  fi
+  case "$1" in
+    *.tar.bz2) tar xjf "$1" ;;
+    *.tar.gz)  tar xzf "$1" ;;
+    *.tar.xz)  tar xJf "$1" ;;
+    *.tar)     tar xf "$1" ;;
+    *.bz2)     bunzip2 "$1" ;;
+    *.gz)      gunzip "$1" ;;
+    *.zip)     unzip "$1" ;;
+    *.rar)     unrar x "$1" ;;
+    *.7z)      7z x "$1" ;;
+    *.Z)       uncompress "$1" ;;
+    *)         echo "Error: Unknown archive format '$1'" ;;
+  esac
+}
+
+# =========================================================
+# 5.5 PROCESS MANAGEMENT
+# =========================================================
+# psg: Find processes by name (ps + grep)
+psg() {
+  ps aux | grep -v grep | grep -i "${1:-.}"
+}
+
+# topcpu: Show top 10 CPU-consuming processes
+alias topcpu='ps aux --sort=-%cpu | head -11'
+
+# topmem: Show top 10 memory-consuming processes
+alias topmem='ps aux --sort=-%mem | head -11'
+
+# =========================================================
 # 6. EXTERNAL TOOLS (NVM, OCI, Envman)
 # =========================================================
 export NVM_DIR="$HOME/.nvm"

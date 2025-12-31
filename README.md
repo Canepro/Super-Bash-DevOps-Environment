@@ -8,10 +8,13 @@ Your "Super-Bash" environment provides:
 
 - 🧠 **IntelliSense**: ble.sh providing real-time syntax highlighting and interactive menus
 - ☸️ **Kubernetes**: `kn` (context), `ksn` (namespace), and `klp` (logs) all fuzzy-powered with fzf
+- 🐳 **Docker**: Fuzzy exec (`dexec`), logs (`dlogs`), and quick management aliases
+- 🔧 **System**: One-command OS updates (`sysupdate`), system info (`sysinfo`), and process tools
 - ⚡ **Bun**: Prompt and paths optimized for the Bun JavaScript runtime
 - 🎨 **Visuals**: Oh My Posh handles your OCI/OKE/Production color-coding perfectly
 - 🔍 **Fuzzy Finding**: fzf integration for files, commands, and history
 - 📁 **Smart Navigation**: zoxide for intelligent directory jumping
+- 🔀 **Git**: Quick shortcuts for status, pull, push, and history
 
 ---
 
@@ -163,7 +166,7 @@ cd Super-Bash-DevOps-Environment && bash setup.sh && echo "✅ Done! Restart you
 **Run health check after installation:**
 
 ```bash
-bash check_setup.sh
+bash ./check_setup.sh
 ```
 
 ### 🚀 Bootstrap (One-Command Install/Update)
@@ -239,6 +242,21 @@ Note: If you fork this repo, replace the URL with your fork.
 - `fzf` for fuzzy finding files and commands
 - Custom aliases for common paths
 
+#### Docker Integration
+
+- `dexec` - Interactive exec into container (fzf-powered)
+- `dlogs` - Interactive container log viewer (fzf-powered)
+- `dps`, `dimg`, `dprune`, `dstop` - Quick Docker aliases
+
+#### System & DevOps Tools
+
+- `sysupdate` - One-command OS update (Debian/RHEL/Arch)
+- `sysinfo` - Quick system overview (storage, memory, CPU, Docker)
+- `ports`, `myip`, `localip` - Network diagnostics
+- `topcpu`, `topmem`, `psg` - Process management
+- Git shortcuts: `gs`, `gp`, `gpp`, `glog`, `gundo`
+- File utilities: `ll`, `lt`, `mkcd`, `extract`
+
 #### Visual Prompt
 
 - **oh-my-posh** theme with:
@@ -271,11 +289,51 @@ ksn   # Opens fuzzy menu to select namespace
 klp   # Opens fuzzy menu to select pod and stream logs
 ```
 
+**Docker Container Management:**
+
+```bash
+dexec  # Opens fuzzy menu to exec into a container
+dlogs  # Opens fuzzy menu to follow container logs
+dps    # Quick overview of running containers
+dprune # Clean up all unused Docker resources
+```
+
+**System Maintenance:**
+
+```bash
+sysupdate  # Full OS update (works on Debian/RHEL/Arch)
+sysinfo    # Quick overview: storage, memory, CPU, Docker
+ports      # See what's listening on your machine
+myip       # Show your public IP
+```
+
+**Git Workflow:**
+
+```bash
+gs     # Quick status check
+gp     # Pull latest changes
+gpp    # Sync: pull then push
+glog   # See recent commits
+gundo  # Oops, undo last commit (keeps changes)
+```
+
 **Smart Directory Navigation:**
 
 ```bash
 z <partial-name>  # Jump to any recently visited directory (zoxide)
 cdd               # Quick access to your repos directory
+mkcd newproject   # Create and enter a new directory
+```
+
+**File & Process Management:**
+
+```bash
+ll              # Detailed directory listing
+lt              # List files by modification time
+extract file.tar.gz  # Universal archive extractor
+psg nginx       # Find processes matching "nginx"
+topcpu          # See top CPU-consuming processes
+topmem          # See top memory-consuming processes
 ```
 
 **Command History Search:**
@@ -312,22 +370,91 @@ cdd               # Quick access to your repos directory
 
 ### Aliases
 
-- `k` - kubectl
-- `kgp` - kubectl get pods
-- `kl` - kubectl logs -f
-- `kx` - kubectl exec -it
-- `b` - bun
-- `br` - bun run
-- `cdd` - cd to repos (auto-detects: `/mnt/d/repos` on WSL, `$DEV_REPOS_DIR`, or `~/repos`)
-- `l` - ls -l with colors
+#### Kubernetes
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `k` | `kubectl` | Short kubectl |
+| `kgp` | `kubectl get pods` | List pods |
+| `kl` | `kubectl logs -f` | Follow pod logs |
+| `kx` | `kubectl exec -it` | Exec into pod |
+
+#### Docker
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `dps` | `docker ps --format ...` | Clean container list |
+| `dimg` | `docker images` | List images |
+| `dprune` | `docker system prune -af --volumes` | Remove all unused resources |
+| `dstop` | `docker stop $(docker ps -q)` | Stop all running containers |
+
+#### System Maintenance
+
+| Alias | Description |
+|-------|-------------|
+| `sysupdate` | One-command OS update (Debian/RHEL/Arch) |
+| `sysinfo` | Quick overview: storage, memory, CPU, Docker usage |
+| `ports` | Show all listening ports with process info |
+| `myip` | Show public IP address |
+| `localip` | Show local IP addresses |
+| `pingg` | Quick connectivity check (ping 8.8.8.8) |
+
+#### Git
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `gs` | `git status` | Quick status |
+| `gp` | `git pull` | Pull from remote |
+| `gpp` | `git pull && git push` | Sync with remote |
+| `glog` | `git log --oneline -20` | Recent commits |
+| `gundo` | `git reset --soft HEAD~1` | Undo last commit (keep changes) |
+| `gd` | `git diff` | Show unstaged changes |
+| `gds` | `git diff --staged` | Show staged changes |
+
+#### File & Directory
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `l` | `ls -l --color=auto` | List with colors |
+| `ll` | `ls -alh --color=auto` | Detailed listing |
+| `lt` | `ls -alht --color=auto` | Sorted by time |
+| `cdd` | `cd <repos>` | Jump to repos directory |
+| `b` | `bun` | Short for bun |
+| `br` | `bun run` | Run bun scripts |
+
+#### Process Management
+
+| Alias | Description |
+|-------|-------------|
+| `topcpu` | Top 10 CPU-consuming processes |
+| `topmem` | Top 10 memory-consuming processes |
 
 ### Custom Functions
 
-- `kn()` - Switch Kubernetes context interactively
-- `ksn()` - Switch Kubernetes namespace interactively
-- `klp()` - Follow logs for a pod interactively
-- `kxp()` - Exec into a pod interactively (tries bash, falls back to sh)
-- `kdp()` - Describe a pod interactively (searches across all namespaces)
+#### Kubernetes (fzf-powered)
+
+| Function | Description |
+|----------|-------------|
+| `kn` | Switch Kubernetes context interactively |
+| `ksn` | Switch Kubernetes namespace interactively |
+| `klp` | Follow logs for a pod interactively |
+| `kxp` | Exec into a pod interactively (tries bash, falls back to sh) |
+| `kdp` | Describe a pod interactively (searches across all namespaces) |
+
+#### Docker (fzf-powered)
+
+| Function | Description |
+|----------|-------------|
+| `dexec` | Exec into a running container interactively |
+| `dlogs` | Follow container logs interactively |
+
+#### Utilities
+
+| Function | Description |
+|----------|-------------|
+| `mkcd <dir>` | Create directory and cd into it |
+| `extract <file>` | Universal archive extractor (tar/zip/gz/bz2/7z/rar) |
+| `psg <pattern>` | Find processes by name (ps + grep) |
 
 ## 🎨 Theme Customization
 
@@ -416,7 +543,7 @@ This setup works across different environments:
 The `check_setup.sh` script validates your entire Super-Bash environment installation. Run it anytime to verify everything is working correctly:
 
 ```bash
-bash check_setup.sh
+bash /path/to/Super-Bash-DevOps-Environment/check_setup.sh
 ```
 
 ### What It Checks
