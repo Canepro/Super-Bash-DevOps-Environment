@@ -93,6 +93,15 @@ rm -f "$ZOXIDE_LOG"
 
 # Install Bun
 echo "  4/5 Installing Bun (JavaScript runtime)..."
+BUN_PREREQ_MISSING=false
+if ! command -v unzip >/dev/null 2>&1; then
+  echo "     ❌ Error: unzip is required to install Bun (missing 'unzip' command)" >&2
+  echo "        Ubuntu/Debian: sudo apt update && sudo apt install -y unzip" >&2
+  BUN_PREREQ_MISSING=true
+fi
+if [ "$BUN_PREREQ_MISSING" = true ]; then
+  exit 1
+fi
 BUN_LOG="$(mktemp)"
 if ! curl -fsSL https://bun.sh/install | bash > "$BUN_LOG" 2>&1; then
   echo "     ❌ Error: Failed to install Bun" >&2

@@ -97,6 +97,11 @@ if ! command -v make >/dev/null 2>&1; then
   install_prereq_hint
   exit 1
 fi
+if ! command -v unzip >/dev/null 2>&1; then
+  err "❌ Error: unzip is required but not installed."
+  install_prereq_hint
+  exit 1
+fi
 
 detect_default_branch() {
   # Try to read remote default branch (HEAD) without cloning.

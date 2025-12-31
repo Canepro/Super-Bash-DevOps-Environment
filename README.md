@@ -59,7 +59,7 @@ If any are missing, install them first using your system's package manager.
 
 ```bash
 sudo apt update
-sudo apt install -y git make curl build-essential
+sudo apt install -y git make curl build-essential unzip
 ```
 
 **Tip:** The bash version command is `bash --version` (double-dash). If you type `bash --versio` you’ll get an “invalid option” error.
