@@ -302,6 +302,76 @@ else
     ((WARN_COUNT++))
 fi
 
+# 7. System Overview
+echo -e "\n${INFO}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${INFO}💻 System Overview${NC}"
+echo -e "${INFO}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+# Disk space (root partition)
+disk_info=$(df -h / 2>/dev/null | awk 'NR==2 {print $4 " available (" $5 " used)"}')
+echo -e "Disk:     ${disk_info:-N/A}"
+
+# Memory
+mem_info=$(free -h 2>/dev/null | awk '/^Mem:/ {print $7 " available / " $2 " total"}')
+echo -e "Memory:   ${mem_info:-N/A}"
+
+# CPU cores
+cpu_cores=$(nproc 2>/dev/null || echo "N/A")
+echo -e "CPU:      ${cpu_cores} cores"
+
+# Uptime
+uptime_info=$(uptime -p 2>/dev/null | sed 's/up //' || echo "N/A")
+echo -e "Uptime:   ${uptime_info}"
+
+# Docker status
+echo ""
+if command -v docker &>/dev/null; then
+    if docker info &>/dev/null 2>&1; then
+        container_count=$(docker ps -q 2>/dev/null | wc -l)
+        container_total=$(docker ps -aq 2>/dev/null | wc -l)
+        image_count=$(docker images -q 2>/dev/null | wc -l)
+        echo -e "🐳 Docker: ${PASS}Running${NC}"
+        echo -e "   Containers: ${container_count} running / ${container_total} total"
+        echo -e "   Images:     ${image_count}"
+    else
+        echo -e "🐳 Docker: ${WARN}Installed but not running${NC}"
+        echo -e "   ${INFO}Hint: sudo systemctl start docker${NC}"
+    fi
+else
+    echo -e "🐳 Docker: ${WARN}Not installed${NC}"
+fi
+
+# Kubernetes status
+echo ""
+if command -v kubectl &>/dev/null; then
+    current_context=$(kubectl config current-context 2>/dev/null)
+    if [ -n "$current_context" ]; then
+        current_ns=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null)
+        current_ns="${current_ns:-default}"
+        
+        # Test cluster connectivity (quick timeout)
+        if kubectl cluster-info &>/dev/null 2>&1; then
+            node_count=$(kubectl get nodes --no-headers 2>/dev/null | wc -l)
+            pod_count=$(kubectl get pods --no-headers 2>/dev/null | wc -l)
+            echo -e "☸️  Kubernetes: ${PASS}Connected${NC}"
+            echo -e "   Context:   ${current_context}"
+            echo -e "   Namespace: ${current_ns}"
+            echo -e "   Nodes:     ${node_count}"
+            echo -e "   Pods:      ${pod_count} (in current namespace)"
+        else
+            echo -e "☸️  Kubernetes: ${WARN}Context set but cluster unreachable${NC}"
+            echo -e "   Context:   ${current_context}"
+            echo -e "   Namespace: ${current_ns}"
+            echo -e "   ${INFO}Hint: Check VPN, network, or cluster status${NC}"
+        fi
+    else
+        echo -e "☸️  Kubernetes: ${WARN}No context configured${NC}"
+        echo -e "   ${INFO}Hint: kubectl config use-context <context-name>${NC}"
+    fi
+else
+    echo -e "☸️  Kubernetes: ${WARN}kubectl not installed${NC}"
+fi
+
 # Summary
 echo -e "\n${INFO}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${INFO}📊 Summary${NC}"
